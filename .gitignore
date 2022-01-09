@@ -1,0 +1,10 @@
+/__pycache__/
+/data/
+/google_cloud_sdk/
+/htmls/
+/Wikipedia/
+/table_utils/
+*.json
+*.html
+*.tar.gz
+*.zip
