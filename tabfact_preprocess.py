@@ -102,8 +102,15 @@ def tabfact_template_all(tablex):
 
     return results
 if __name__ == '__main__':
-    table_path = './data/tables_tok'
-    output_path = './data/tabfact_process'
+    #table_path = './data/tables_tok'
+    #output_path = './data/tabfact_process'
+
+    """
+    wiki html
+    """
+    table_path = './data/Wiki/tables_tok'
+    output_path = './data/Wiki/tabfact_process'
+
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
@@ -117,7 +124,7 @@ if __name__ == '__main__':
             table_data.append(table_file)
     
     
-    cores = multiprocessing.cpu_count()
+    cores = 2 #multiprocessing.cpu_count()
     pool = Pool(cores)
     rs = pool.map(tabfact_template_all, table_data)
     print('processing...')
