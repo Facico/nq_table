@@ -19,7 +19,7 @@ def nq():
                 url_table[url] = []
             url_table[url].append([file, uid])
     with open('url_table_all.json', 'w') as f:
-        json.dump(url_table, f)
+        json.dump(url_table, f, indent=2)
 
 def wiki():
     table_path = './data/Wiki/tables'
@@ -38,5 +38,5 @@ def wiki():
         json.dump(url_table, f)
 
 if __name__ == '__main__':
-    wiki()
+    nq()
 

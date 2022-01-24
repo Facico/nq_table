@@ -131,5 +131,5 @@ if __name__ == "__main__":
             hyper_dict_new[k] = hyper_listx
         
         with open('./data/hyper_table_list_add_wiki.json', 'w') as f:
-            json.dump(hyper_dict_new, f)
+            json.dump(hyper_dict_new, f, indent=2)
     

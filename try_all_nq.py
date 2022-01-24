@@ -27,7 +27,13 @@ output_folder = local_path + 'data/'
 #default setting
 #default_setting = {'miniumu_row': 8, 'ratio': 0.7, 'max_header': 6, 'min_header': 2}
 default_setting = {'miniumu_row': 5, 'ratio': 0.85, 'max_header': 20, 'min_header': 2}
-dictionary = {}
+
+with open('Wikipedia/wiki-intro-with-ents-dict.json', 'r') as f:
+    OTT_cache = json.load(f)
+with open('Wikipedia/redirect_link.json', 'r') as f:
+    OTT_redirect = json.load(f)
+with open('Wikipedia/old_merged_unquote.json', 'r') as f:
+    OTT_dictionary = json.load(f)
 
 def parse_url_title(url):
     title_pos = url.find('title=')
@@ -118,6 +124,47 @@ def harvest_tables_nq(f_url):
                             'section_title': section_title, 'section_text': section_text,
                             'uid': uid})
     return results
+
+def get_summary(page_title):
+    original_title = copy.copy(page_title)
+    page_title = url2dockey(page_title.replace('/wiki/', ''))
+    if '/wiki/' + page_title in OTT_dictionary:
+        return OTT_dictionary['/wiki/' + page_title]
+    elif page_title in OTT_cache:
+        return OTT_cache[page_title]
+    else:
+        return download_summary(original_title)
+        """if page_title in redirect['forward']:
+            page_title = redirect['forward'][page_title]
+            if page_title in cache:
+                return cache[page_title]
+            else:
+                return download_summary(original_title)
+        else:
+            return download_summary(original_title)"""
+
+def crawl_hyperlinks(table):
+    dictionary = {}
+    for cell in table['header']:
+        if cell[1]:
+            for tmp in cell[1]:
+                if tmp and tmp not in dictionary:                
+                    summary = get_summary(tmp)
+                    dictionary[tmp] = summary
+        
+    for row in table['data']:
+        for cell in row:
+            if cell[1]:
+                for tmp in cell[1]:
+                    if tmp and tmp not in dictionary:
+                        summary = get_summary(tmp)
+                        dictionary[tmp] = summary
+    # Getting page summary
+    assert '.org' in table['url']
+    name = re.sub(r'.+\.org', '', table['url'])
+    summary = get_summary(name)
+    dictionary[name] = summary
+    return dictionary
 
 def inplace_postprocessing(tables, default_setting=default_setting, all_tables=None):
     deletes = []
@@ -322,6 +369,34 @@ def proccess_data(filename, steps, split_number=None):
         print('have table data: {} / {}'.format(have_table_num, len(text_url_list)))
         print("Step1-2: Finsihing postprocessing the tables")
 
+    if '2' in steps:
+        # Step3: Getting the hyperlinks
+        if split_number is not None:
+            with open('{}/processed_new_table_postfiltering.json'.format(output_folder), 'r') as f:
+                tables = json.load(f)
+        else:
+            with open('{}/processed_new_table_postfiltering_split{}.json'.format(output_folder, split_number), 'w') as f:
+                tables = json.load(f)
+
+        print("Step2-1: Total of {} tables".format(len(tables)))
+
+        rs = pool.map(crawl_hyperlinks, tables)
+        for r in rs:
+            OTT_dictionary.update(r)
+        for k, v in OTT_dictionary.items():
+            OTT_dictionary[k] = re.sub(r'\[[\d]+\]', '', v).strip()
+        merged_unquote = {}
+        for k, v in OTT_dictionary.items():
+            if k is None:
+                continue
+            merged_unquote[url2dockey(k)] = clean_text(v)
+
+            # 这里使不使用都是从OTT_dictionary更新
+        with open('{}/merged_unquote.json'.format(output_folder), 'w') as f:
+            json.dump(merged_unquote, f, indent=2)
+            
+        print("Step2-2: Finishing collecting all the links")
+
     if '3' in steps:
         # Step 4: distribute the tables into separate files
         with open('{}/processed_new_table_postfiltering_split{}.json'.format(output_folder, split_number), 'r') as f:
@@ -365,7 +440,9 @@ def proccess_data(filename, steps, split_number=None):
 
 if __name__ == '__main__':
     steps = ['1', '3', '4', '6']#['1', '3', '4']
-    cores = multiprocessing.cpu_count()
+       
+
+    cores = 2#multiprocessing.cpu_count()
     pool = Pool(cores)
     print("Initializing the pool of cores")
 
@@ -382,10 +459,14 @@ if __name__ == '__main__':
         file_dict[i] = 1
 
     nq_train_data_path = '/data1/fch123/OTT-QA/data/v1.0/train/'
-    for file in os.listdir(nq_train_data_path):
-        it = int(file.split('-')[-1].split('.')[0])
-        file_path = os.path.join(nq_train_data_path, file)
-        proccess_data(file_path, steps=steps, split_number=it)
+    for step_x in steps:
+        step_now = [step_x]
+        for file in os.listdir(nq_train_data_path):
+            it = int(file.split('-')[-1].split('.')[0])
+            file_path = os.path.join(nq_train_data_path, file)
+            proccess_data(file_path, steps=step_now, split_number=it)
+            if step_x == '4' or step_x == '6':
+                break
     
     pool.close()
     pool.join()

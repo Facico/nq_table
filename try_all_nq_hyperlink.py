@@ -535,7 +535,7 @@ if __name__ == '__main__':
             it = int(file.split('-')[-1].split('.')[0])
             file_path = os.path.join(nq_train_data_path, file)
             proccess_data(file_path, steps=step_now, split_number=it)
-            if step_x == 4:
+            if step_x == '4':
                 break
     
     pool.close()

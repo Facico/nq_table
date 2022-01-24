@@ -125,69 +125,12 @@ def get_pn(result_all_x, id_to_answer):
     ans_pn[example_id] = {'positive_num': positive_num, 'pn_list': p_n}
     return ans_pn
 
-def main_2(id):
-    print('deal file id {}'.format(id))
-    start_time = time.time()
-    id_to_answer = {}
-    id_to_answer_file = './data/id_to_answer_split{}.json'.format(id)
-    #id_to_answer_file = './data/id_to_answer_all.json'
-    with open(id_to_answer_file, 'r') as f:
-        id_to_answer = json.load(f)
-    ans_pn = {}
-    hyper_answer = {}
-    for i in tqdm(range(len(result_all))):
-        example_id = ''
-        for k, v in result_all[i].items():
-            example_id = k
-        
-        if(example_id not in id_to_answer):
-            continue
-        
-        answers = id_to_answer[example_id]['no_html_answers']
-        posi_list = []
-        positive_num = 0
-        c_set = {}
-        for answer_doc_file_name in result_all[i][example_id]["candidate_doc"]:
-            c_set[answer_doc_file_name] = 1
-        for answer_doc_file_name in result_all[i][example_id]["candidate_doc"]:
-            #y_n = table_match(tablex, answers)
-            # get hyper
-            for i in hyper_table_dict[answer_doc_file_name]:
-                if i[0] == 'not find':
-                    continue
-                elif i[0] == 'wiki':
-                    if(i[1] in c_set):
-                        continue
-                    c_set[i[1]] = 1
-                    wiki_tablex = table_wiki[i[1]]
-                    y_n = table_match(wiki_tablex, answers)
-                    if y_n == True:
-                        posi_list.append(['wiki', i[1]])
-                else:
-                    #tablex = table_dict(i[0])
-                    if(i[0] in c_set):
-                        continue
-                    c_set[i[0]] = 1
-                    if i[0] not in table_dict:
-                        print('not find    ', i[0])
-                        continue
-                    tablex = table_dict[i[0]]
-                    y_n = table_match(tablex, answers)
-                    if y_n == True:
-                        posi_list.append(['nq', i[0]])
-            
-        ans_pn[example_id] = {'positive_list': posi_list}
-        #print(positive_num)
-        #break
-    end_start = time.time()
-    print('cost time {:.5f} min'.format((end_start - start_time)/ 60 ))
-    pn_file_path = './data/bm25_pn_add_wiki_split{}.json'.format(id)
-    with open(pn_file_path, 'w') as f:
-        json.dump(ans_pn, f)
-if __name__ == '__main__':
-    cores = 5#multiprocessing.cpu_count()
+def main_2_id(id):
 
-    step = ['3']#['3.5', '4']#['2', '3', '4'] #['1', '2', '3']
+if __name__ == '__main__':
+    cores = 3#multiprocessing.cpu_count()
+
+    step = ['2', '3', '4'] #['1', '2', '3']
     nq_train_data_path = '/data1/fch123/OTT-QA/data/v1.0/train/'
     
     if '1' in step:
@@ -282,10 +225,7 @@ if __name__ == '__main__':
             with open(pn_file_path, 'w') as f:
                 json.dump(ans_pn, f)"""
 
-        # simple multi process
-        id = [i for i in range(50)]
-        _ = Pool(cores).map(main_2, id)
-        """for id in range(50):
+        for id in range(25,50):
             print('deal file id {}'.format(id))
             start_time = time.time()
             id_to_answer = {}
@@ -322,7 +262,7 @@ if __name__ == '__main__':
                             wiki_tablex = table_wiki[i[1]]
                             y_n = table_match(wiki_tablex, answers)
                             if y_n == True:
-                                posi_list.append(['wiki', i[1]])
+                                posi_list.append(['wiki', i[0]])
                         else:
                             #tablex = table_dict(i[0])
                             if(i[0] in c_set):
@@ -340,106 +280,24 @@ if __name__ == '__main__':
             print('cost time {:.5f} min'.format((end_start - start_time)/ 60 ))
             pn_file_path = './data/bm25_pn_add_wiki_split{}.json'.format(id)
             with open(pn_file_path, 'w') as f:
-                json.dump(ans_pn, f)"""
+                json.dump(ans_pn, f)
 
     if '3' in step:
         ans_pn_all = {}
-        k_v_num = 0
-        k_v_chong = 0
         for id in tqdm(range(50)):
            # print('deal file id {}'.format(id))
             pn_file_path = './data/bm25_pn_add_wiki_split{}.json'.format(id)
             with open(pn_file_path, 'r') as f:
                 ans_pn_x = json.load(f)
                 for k, v in ans_pn_x.items():
-                    if k not in ans_pn_all:
-                        ans_pn_all[k] = v
-                        k_v_num += 1
-                    else:
-                        k_v_chong += 1
-                        print(k, v, ans_pn_all[k])
+                    ans_pn_all[k] = v
         pn_all_path = './data/bm25_pn_add_wiki_all.json'    
-        print('len of all {}'.format(k_v_num))
         with open(pn_all_path, 'w') as f:
             json.dump(ans_pn_all, f)
     
-    if '3.5' in step:
-        result_all = []
-        all_result_path = './data/bm25_result_all.json'
-        with open(all_result_path, 'r') as f:
-            one_bm25_result = json.load(f)
-            result_all = one_bm25_result
-        print('len of all is {}'.format(len(result_all)))
-
-        hyper_ans_pn_all = {}
-        pn_all_path = './data/bm25_pn_add_wiki_all.json'  
-        with open(pn_all_path, 'r') as f:
-            hyper_ans_pn_all = json.load(f)
-        
-        ans_pn_all = {}
-        pn_all_path = './data/bm25_pn_all.json'  
-        with open(pn_all_path, 'r') as f:
-            ans_pn_all = json.load(f)
-        result_all_new = {}
-        pn_new = {}
-        for i in tqdm(range(len(result_all))):
-            example_id = ''
-            for k, v in result_all[i].items():
-                example_id = k
-            top100 = result_all[i][example_id]["candidate_doc"]
-            top100_pn = ans_pn_all[example_id]['pn_list']
-            result_all_new_x = []
-            pn_new_x = []
-            stack_hyper = hyper_ans_pn_all[example_id]['positive_list']
-            o = len(stack_hyper)
-            c_set = {}
-            for j in range(len(top100)-1, -1, -1):
-                if top100_pn[j] == False:
-                    if o > 0:
-                        #print(stack_hyper)
-                        #print(o)
-                        x = stack_hyper[o - 1]
-                        o -= 1
-                        if x[0] == 'wiki':
-                            result_all_new_x = result_all_new_x + [x]
-                        else:
-                            result_all_new_x = result_all_new_x + [x[1]]
-                        pn_new_x = pn_new_x + [1]
-                    else:
-                        result_all_new_x = result_all_new_x + [top100[j]]
-                        pn_new_x = pn_new_x + [0]
-                else:
-                    result_all_new_x = result_all_new_x + [top100[j]]
-                    #print(top100[j])
-                    pn_new_x = pn_new_x + [1]
-                
-                now_x = ''
-                if len(result_all_new_x[-1]) == 2:
-                    now_x = result_all_new_x[-1][1]
-                else:
-                    now_x = result_all_new_x[-1]
-
-                if now_x not in c_set:
-                    c_set[now_x] = 1
-                else:
-                    #print('error!!!')
-                    print(now_x, j, top100[j], result_all_new_x[-1])
-                    sys.exit(0)
-                    pass
-            
-            result_all_new[example_id] = result_all_new_x
-            positive_num = 0
-            for i in pn_new_x:
-                if i == 1:
-                    positive_num += 1
-            pn_new[example_id] = {'pn_list': pn_new_x, 'positive_num': positive_num}
-        with open('./data/bm25_result_merge_all.json', 'w') as f:
-            json.dump(result_all_new, f)
-        with open('./data/bm25_pn_merge_all.json', 'w') as f:
-            json.dump(pn_new, f)
     if '4' in step:
         ans_pn_all = {}
-        pn_all_path = './data/bm25_pn_merge_all.json'  
+        pn_all_path = './data/bm25_pn_add_wiki_all.json'  
         with open(pn_all_path, 'r') as f:
             ans_pn_all = json.load(f)
         AP_id = [1, 5, 10, 20, 50, 100]
