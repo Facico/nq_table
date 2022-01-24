@@ -23,3 +23,9 @@
 -  **split_file.py**：把simple nq的文件分割
 - **shiyan.py**：不用管它
 - 其他：原OTT脚本
+
+## 超链接部分
+-  **get_hyper_table.py**：得到对bm25 top100搜索出的超链接table，要考虑wiki中的table，得到文件`'hyper_table_list_add_wiki.json'`
+-  **bm25_get_answer_add_wiki.py**: 将超链接搜索出的table部分匹配
+-  **merge_hyper_to_pn.py**： 将超链接搜索出的结果融合进原来的top100中
+-  **try_wikepedia.py**： 用OTT提供的wiki的数据得到table
