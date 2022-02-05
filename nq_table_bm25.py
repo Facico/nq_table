@@ -48,6 +48,7 @@ if __name__ == '__main__':
         it_num = int(file.split('-')[-1].split('.')[0])
         query = []
         query_url = []
+        
         num_num = 0
         with gzip.open(file_path, 'r') as f:
             for i in tqdm(f):
