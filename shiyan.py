@@ -102,4 +102,30 @@ if __name__ == '__main__':
     #print(os.path.exists(r'./data/tables_tok/.380_ACP_850240454_0.json'))
     #print(url2dockey("You_Can_Dance_\u2013_Po_Prostu_Ta\u0144cz!_(season_1)_20"))
     #print(multiprocessing.cpu_count())
-    bm25_try()
+    #bm25_try()
+    """table_list = 'url_table.json'
+    nq_train_data_path = '../data/v1.0/train/' # dev 7283 7830   not_table_query, url_num
+    data_table = json.load(open(table_list, 'r'))
+    not_table_query = 0
+    url_set = {}
+    url_num = 0
+    all_query = 0
+    url_num = 0
+    q_u = {}
+    for id in range(50):
+        print(id)
+        if(id>=10):
+            file_path = os.path.join(nq_train_data_path, 'nq-train-{}.jsonl.gz'.format(id))
+        else:
+            file_path = os.path.join(nq_train_data_path, 'nq-train-0{}.jsonl.gz'.format(id))
+        with gzip.open(file_path, 'r') as f:
+            for i in tqdm(f):
+                table = json.loads(i)
+                #if table['document_url'] not in data_table:
+                #    not_table_query += 1
+                q_u[table['question_text']] = table['document_url']
+                url_num += 1
+    with open('./data/train_qu.json', 'w') as f:
+        json.dump(q_u, f, indent=2)
+    print(not_table_query, url_num)"""
+    pass
