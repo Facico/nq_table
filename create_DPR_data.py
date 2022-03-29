@@ -25,7 +25,7 @@ def make_example(query, answers, table_list, pn_list):
         passagex = {}
         passagex["text"], passagex["title"] = table_list[i][0][0], table_list[i][1]
         if pn_list[i] == 0:
-            datax["positive_ctxs"].append(passagex)
+            datax["negative_ctxs"].append(passagex)
         else:
             datax["positive_ctxs"].append(passagex)
     return datax
